@@ -37,7 +37,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.example.Main</mainClass>
+                            <mainClass>org.example.Test</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
