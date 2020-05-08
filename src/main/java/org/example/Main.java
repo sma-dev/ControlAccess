@@ -5,21 +5,22 @@ import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class Main {
-    static final String DATABASE_URL = "jdbc:postgresql://jdroid.ru/access_db";
 
-    static final String USER = "operator1";
-    static final String PASSWORD = "Ja8UAw8YTQ";
 
-    public static void main(String[] args) throws SQLException {
-
+    public static void main(String[] args) {
 
         /*
          * Передаём в конструктор имя порта
          */
-        SerialPort serialPort = new SerialPort("/dev/ttyUSB0");
+        SerialPort serialPort = new SerialPort(args[0]);
         try {
             /*
              * Открываем порт
@@ -53,57 +54,23 @@ public class Main {
         } catch (SerialPortException ex) {
             ex.printStackTrace();
         }
-
-
-        // DB side
-        Connection connection = null;
-        Statement statement = null;
-        try {
-            Class.forName("org.postgresql.Driver");
-
-            System.out.println("Creating connection to database...");
-            connection = DriverManager.getConnection(DATABASE_URL, USER, PASSWORD);
-
-            System.out.println("Getting records...");
-            statement = connection.createStatement();
-
-            String SQL = "SELECT * FROM employee";
-            ResultSet resultSet = statement.executeQuery(SQL);
-
-            while (resultSet.next()) {
-                int id = resultSet.getInt(1);
-                String rf_id = resultSet.getString(2);
-                String access_level = resultSet.getString(3);
-
-                System.out.println("id: " + id);
-                System.out.println("rf_id: " + rf_id);
-                System.out.println("access_level: " + access_level);
-                System.out.println("===================\n");
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
-        }
     }
 
     static class SerialPortReader implements SerialPortEventListener {
 
         private final SerialPort serialPort;
+        private final RoomController roomController;
+        private final StringBuilder arduinoMessage = new StringBuilder();
+        private Boolean receivingMessage = false;
 
         public SerialPortReader(SerialPort serialPort) {
+            roomController = new RoomController();
             this.serialPort = serialPort;
         }
 
-        StringBuilder message = new StringBuilder();
-        Boolean receivingMessage = false;
-
         public void serialEvent(SerialPortEvent event) {
+
+
             /*
              * Объект типа SerialPortEvent несёт в себе информацию о том какое событие
              * произошло и значение. Так например если пришли данные то метод
@@ -114,20 +81,58 @@ public class Main {
                 try {
                     byte[] buffer = serialPort.readBytes();
                     for (byte b : buffer) {
-                        System.out.println(b);
-                        System.out.println((char) b);
+                        System.out.print((char) b);
                         if (b == '&') {
                             receivingMessage = true;
-                            message.setLength(0);
+                            arduinoMessage.setLength(0);
                         } else if (receivingMessage) {
                             if (b == '\n') {
                                 receivingMessage = false;
-                                String toProcess = message.toString();
-                                System.out.println(toProcess);
+                                String rf_id = arduinoMessage.toString();
+                                System.out.println(rf_id);
+
+                                //String rf_id = "F4R3G5E2";
                                 // Database
-                                serialPort.writeByte((byte) 1);
+                                Employee employee = null;
+                                try {
+                                    employee = findByRfId(rf_id);
+
+                                    if (employee.getId() == -1) {
+                                        System.out.println("Entity not found -> create new user");
+                                        PreparedStatement st = roomController.getInstance().prepareStatement("INSERT INTO employee (rf_id) VALUES (?);");
+                                        st.setString(1, rf_id);
+                                        st.executeUpdate();
+                                        st.close();
+                                        employee = findByRfId(rf_id);
+                                    }
+
+                                    // Add log row
+                                    System.out.println("Add log row");
+                                    LocalDateTime localDateTime = Instant.ofEpochMilli(new java.util.Date().getTime())
+                                            .atZone(ZoneId.systemDefault())
+                                            .toLocalDateTime();
+                                    PreparedStatement st = roomController.getInstance().prepareStatement("INSERT INTO visit_log (time, employee_id) VALUES (?, ?)");
+                                    st.setObject(1, localDateTime);
+                                    st.setLong(2, employee.getId());
+                                    st.executeUpdate();
+                                    st.close();
+
+                                } catch (SQLException |
+                                        ClassNotFoundException throwable) {
+                                    throwable.printStackTrace();
+                                }
+
+                                if (employee != null && employee.getAccess_level() != 0) {
+                                    System.out.println("Пустить!");
+                                    serialPort.writeByte((byte) 5);
+                                } else {
+                                    System.out.println("Не пустить!");
+                                    serialPort.writeByte((byte) 0);
+                                }
+
+
                             } else {
-                                message.append((char) b);
+                                arduinoMessage.append((char) b);
                             }
                         }
                     }
@@ -135,6 +140,27 @@ public class Main {
                     ex.printStackTrace();
                 }
             }
+        }
+
+        private Employee findByRfId(String rf_id) throws SQLException, ClassNotFoundException {
+
+            System.out.println("Try search user with rf_id");
+            PreparedStatement st = roomController.getInstance().prepareStatement("SELECT id, access_level FROM employee WHERE rf_id = ?");
+            st.setString(1, rf_id);
+            ResultSet resultSet = st.executeQuery();
+
+            long id = -1;
+            int access_level = 0;
+            if (resultSet != null && resultSet.next()) {
+                id = resultSet.getLong(1);
+                access_level = resultSet.getInt(2);
+                System.out.println("id: " + id);
+                System.out.println("rf_id: " + rf_id);
+                System.out.println("access_level: " + access_level);
+                System.out.println("===================");
+            }
+            st.close();
+            return new Employee(id, access_level, rf_id);
         }
     }
 }
