@@ -1,4 +1,4 @@
-package org.example;
+package org.access.driver;
 
 import jssc.SerialPort;
 import jssc.SerialPortEvent;

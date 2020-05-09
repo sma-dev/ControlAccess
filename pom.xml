@@ -37,7 +37,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.example.Test</mainClass>
+                            <mainClass>org.access.driver.Test</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
