@@ -19,18 +19,24 @@ public class DownloadPanel extends Panel {
         next.addActionListener(e -> {
             try {
                 if (Settings.isWindows()) {
-                    File startBatch = new File(System.getenv("APPDATA")
-                            + Settings.DIVIDER + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.bat");
-                    if (startBatch.createNewFile() && startBatch.setExecutable(true)) {
-                        FileWriter fileWriter = new FileWriter(startBatch.getAbsoluteFile());
-                        PrintWriter printWriter = new PrintWriter(fileWriter);
-                        printWriter.print("java -jar " + Settings.path + Settings.DIVIDER + Settings.EXEC_FILE + " " + Settings.port);
-                        printWriter.close();
-                    }
+                    File startVBS = new File(System.getenv("APPDATA")
+                            + Settings.SEPARATOR + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs");
+                    System.out.println(startVBS.getAbsolutePath());
+                    FileWriter fileWriter = new FileWriter(startVBS.getAbsoluteFile(), false);
+                    PrintWriter printWriter = new PrintWriter(fileWriter);
+                    printWriter.print("Dim WShell\n" +
+                            "Set WShell = CreateObject(\"WScript.Shell\")\n" +
+                            "WShell.Run \"java -jar \"&Chr(34)&\"" + Settings.path + Settings.SEPARATOR + Settings.EXEC_FILE
+                            + "\"&Chr(34)&\" COM3\", 0\n" +
+                            "Set WShell = Nothing\n" +
+                            "MsgBox(\"Daemon Started!\")");
+                    printWriter.close();
+
+                    final String dosCommand = "cmd /c \"C:\\users\\serg7\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs\"";
 
                     Runtime.
                             getRuntime().
-                            exec("cmd /c start \"\" " + startBatch.getAbsolutePath());
+                            exec("cmd /c \"" + startVBS + "\"");
                 }
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -44,7 +50,7 @@ public class DownloadPanel extends Panel {
         current.setValue(0);
         current.setStringPainted(true);
         add(current);
-        final Worker worker = new Worker(Settings.URL, new File(Settings.path + Settings.DIVIDER + Settings.EXEC_FILE));
+        final Worker worker = new Worker(Settings.URL, new File(Settings.path + Settings.SEPARATOR + Settings.EXEC_FILE));
         worker.addPropertyChangeListener(pcEvt -> {
             if ("progress".equals(pcEvt.getPropertyName())) {
                 current.setValue((Integer) pcEvt.getNewValue());

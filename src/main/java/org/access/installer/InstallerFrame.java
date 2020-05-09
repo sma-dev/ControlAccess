@@ -27,8 +27,7 @@ public class InstallerFrame extends JFrame {
         setResizable(false);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        // TODO !
-        if (isAdmin()) {
+        if (!AdminChecker.IS_RUNNING_AS_ADMINISTRATOR) {
             JOptionPane.showMessageDialog(this, "Run program as administrator!", "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
@@ -38,15 +37,6 @@ public class InstallerFrame extends JFrame {
 
     }
 
-    private boolean isAdmin() {
-        try {
-            Files.createDirectories(Paths.get(Settings.path));
-            Files.delete(Paths.get(Settings.path));
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
 
     public static InstallerFrame getContext() {
         if (context == null) {

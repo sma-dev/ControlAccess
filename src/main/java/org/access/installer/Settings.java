@@ -4,7 +4,7 @@ public class Settings {
     public static final String URL = "https://jdroid.ru/downloads/run.jar";
     public static final String EXEC_FILE = "run.jar";
     public static final String OS = System.getProperty("os.name").toLowerCase();
-    public static final String DIVIDER = isWindows() ? "\\" : isUnix() ? "/" : "";
+    public static final String SEPARATOR = System.getProperty("file.separator");
 
 
     // %AppData%\Microsoft\Windows\Start Menu\Programs\Startup
