@@ -16,6 +16,11 @@ public class PortSelectPanel extends Panel {
         Font font = new Font("Verdana", Font.PLAIN, 18);
 
         String[] items = SerialPortList.getPortNames();
+        if (items.length == 0) {
+            JOptionPane.showMessageDialog(this, "No serial devices detected!", "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
+        }
+        Settings.port = items[0];
 
         ActionListener actionListener = e -> {
             JComboBox<String> box = (JComboBox<String>) e.getSource();

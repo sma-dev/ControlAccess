@@ -6,10 +6,11 @@ public class Settings {
     public static final String OS = System.getProperty("os.name").toLowerCase();
     public static final String DIVIDER = isWindows() ? "\\" : isUnix() ? "/" : "";
 
+
+    // %AppData%\Microsoft\Windows\Start Menu\Programs\Startup
+
     public static String port = "";
-    public static String win_path = "C:\\Program Files\\Diplom";
-    public static String nix_path = "/opt/Diplom";
-    public static String path = "";
+    public static String path = isWindows()?"C:\\Program Files\\Diplom":"/opt/Diplom";
 
 
     public static boolean isWindows() {

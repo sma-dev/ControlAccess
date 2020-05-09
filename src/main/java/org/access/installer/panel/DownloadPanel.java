@@ -5,17 +5,38 @@ import org.access.installer.Settings;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedOutputStream;
-import java.io.File;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 
 public class DownloadPanel extends Panel {
     public DownloadPanel() {
         setBackground(Color.RED);
         JButton next = new JButton("Next");
-        next.addActionListener(e -> InstallerFrame.getContext().navigate(InstallerFrame.PanelID.EXIT));
+        next.addActionListener(e -> {
+            try {
+                if (Settings.isWindows()) {
+                    File startBatch = new File(System.getenv("APPDATA")
+                            + Settings.DIVIDER + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.bat");
+                    if (startBatch.createNewFile() && startBatch.setExecutable(true)) {
+                        FileWriter fileWriter = new FileWriter(startBatch.getAbsoluteFile());
+                        PrintWriter printWriter = new PrintWriter(fileWriter);
+                        printWriter.print("java -jar " + Settings.path + Settings.DIVIDER + Settings.EXEC_FILE + " " + Settings.port);
+                        printWriter.close();
+                    }
+
+                    Runtime.
+                            getRuntime().
+                            exec("cmd /c start \"\" " + startBatch.getAbsolutePath());
+                }
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+            InstallerFrame.getContext().navigate(InstallerFrame.PanelID.EXIT);
+        });
         add(next);
 
         final JProgressBar current = new JProgressBar(0, 100);
@@ -54,10 +75,11 @@ public class DownloadPanel extends Panel {
             URL url = new URL(site);
             HttpURLConnection connection = (HttpURLConnection) url
                     .openConnection();
-            int filesize = connection.getContentLength();
+            int contentLength = connection.getContentLength();
             int totalDataRead = 0;
             try (java.io.BufferedInputStream in = new java.io.BufferedInputStream(
                     connection.getInputStream())) {
+                Files.createDirectories(Paths.get(Settings.path));
                 java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
                 try (java.io.BufferedOutputStream bout = new BufferedOutputStream(
                         fos, 1024)) {
@@ -66,7 +88,7 @@ public class DownloadPanel extends Panel {
                     while ((i = in.read(data, 0, 1024)) >= 0) {
                         totalDataRead = totalDataRead + i;
                         bout.write(data, 0, i);
-                        int percent = (totalDataRead * 100) / filesize;
+                        int percent = (totalDataRead * 100) / contentLength;
                         setProgress(percent);
                     }
                 }

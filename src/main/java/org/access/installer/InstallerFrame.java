@@ -5,6 +5,11 @@ import org.access.installer.panel.Panel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 public class InstallerFrame extends JFrame {
@@ -14,7 +19,7 @@ public class InstallerFrame extends JFrame {
 
     public InstallerFrame() {
         super("Installer");
-        setSize(800, 600);
+        setSize(600, 500);
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         int x = (int) ((dimension.getWidth() - getWidth()) / 2);
         int y = (int) ((dimension.getHeight() - getHeight()) / 2);
@@ -22,10 +27,25 @@ public class InstallerFrame extends JFrame {
         setResizable(false);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        setVisible(true);
+        // TODO !
+        if (isAdmin()) {
+            JOptionPane.showMessageDialog(this, "Run program as administrator!", "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
+        }
 
+        setVisible(true);
         navigate(PanelID.WELCOME);
 
+    }
+
+    private boolean isAdmin() {
+        try {
+            Files.createDirectories(Paths.get(Settings.path));
+            Files.delete(Paths.get(Settings.path));
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     public static InstallerFrame getContext() {

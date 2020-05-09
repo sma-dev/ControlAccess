@@ -22,7 +22,6 @@ public class Test {
     private static String JAR_TITLE = "Run.jar";
     private static String JAR_URL = "https://jdroid.ru/downloads/Run.jar";
 
-    // %AppData%\Microsoft\Windows\Start Menu\Programs\Startup
     public static void main(String[] args) {
         System.out.println(getSerialPorts());
 
