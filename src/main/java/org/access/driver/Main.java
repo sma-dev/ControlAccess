@@ -93,7 +93,7 @@ public class Main {
 
                                 //String rf_id = "F4R3G5E2";
                                 // Database
-                                Employee employee = null;
+                                Employee employee;
                                 try {
                                     employee = findByRfId(rf_id);
 
@@ -117,20 +117,27 @@ public class Main {
                                     st.executeUpdate();
                                     st.close();
 
+
+                                    if (employee.getAccessLevel() != 0) {
+                                        System.out.println("Пустить!");
+                                        serialPort.writeByte((byte) 5);
+
+                                        st = roomController.getInstance().prepareStatement(
+                                                "UPDATE employee SET " +
+                                                        ((employee.getOpenCount() % 2 == 0) ? "last_enter" : "last_out") +
+                                                        " = ? WHERE id = ?");
+                                        st.setObject(1, localDateTime);
+                                        st.setLong(2, employee.getId());
+                                        st.executeUpdate();
+                                        st.close();
+                                        continue;
+                                    }
                                 } catch (SQLException |
                                         ClassNotFoundException throwable) {
                                     throwable.printStackTrace();
                                 }
-
-                                if (employee != null && employee.getAccess_level() != 0) {
-                                    System.out.println("Пустить!");
-                                    serialPort.writeByte((byte) 5);
-                                } else {
-                                    System.out.println("Не пустить!");
-                                    serialPort.writeByte((byte) 0);
-                                }
-
-
+                                System.out.println("Не пустить!");
+                                serialPort.writeByte((byte) 0);
                             } else {
                                 arduinoMessage.append((char) b);
                             }
@@ -145,22 +152,29 @@ public class Main {
         private Employee findByRfId(String rf_id) throws SQLException, ClassNotFoundException {
 
             System.out.println("Try search user with rf_id");
-            PreparedStatement st = roomController.getInstance().prepareStatement("SELECT id, access_level FROM employee WHERE rf_id = ?");
+            PreparedStatement st =
+                    new RoomController().getInstance().prepareStatement(
+                            "SELECT e.id, e.access_level, COUNT(e.id) FROM public.employee e " +
+                                    "LEFT JOIN public.visit_log vl ON vl.employee_id = e.id  WHERE e.rf_id = ? " +
+                                    "GROUP BY e.id");
             st.setString(1, rf_id);
             ResultSet resultSet = st.executeQuery();
 
             long id = -1;
             int access_level = 0;
+            long open_count = 0;
             if (resultSet != null && resultSet.next()) {
                 id = resultSet.getLong(1);
                 access_level = resultSet.getInt(2);
+                open_count = resultSet.getLong(3);
                 System.out.println("id: " + id);
                 System.out.println("rf_id: " + rf_id);
                 System.out.println("access_level: " + access_level);
+                System.out.println("open_count: " + open_count);
                 System.out.println("===================");
             }
             st.close();
-            return new Employee(id, access_level, rf_id);
+            return new Employee(id, access_level, rf_id, open_count);
         }
     }
 }
