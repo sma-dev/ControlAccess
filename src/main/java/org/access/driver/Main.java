@@ -1,16 +1,17 @@
 package org.access.driver;
 
-import jssc.SerialPort;
-import jssc.SerialPortEvent;
-import jssc.SerialPortEventListener;
-import jssc.SerialPortException;
+import jssc.*;
 
+import javax.swing.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Main {
 
@@ -20,6 +21,14 @@ public class Main {
         /*
          * Передаём в конструктор имя порта
          */
+        while (!Arrays.asList(SerialPortList.getPortNames()).contains(args[0])) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         SerialPort serialPort = new SerialPort(args[0]);
         try {
             /*
@@ -68,6 +77,7 @@ public class Main {
             this.serialPort = serialPort;
         }
 
+
         public void serialEvent(SerialPortEvent event) {
 
 
@@ -81,12 +91,11 @@ public class Main {
                 try {
                     byte[] buffer = serialPort.readBytes();
                     for (byte b : buffer) {
-                        System.out.print((char) b);
                         if (b == '&') {
                             receivingMessage = true;
                             arduinoMessage.setLength(0);
                         } else if (receivingMessage) {
-                            if (b == '\n') {
+                            if (b == '\r') {
                                 receivingMessage = false;
                                 String rf_id = arduinoMessage.toString();
                                 System.out.println(rf_id);
@@ -99,32 +108,33 @@ public class Main {
 
                                     if (employee.getId() == -1) {
                                         System.out.println("Entity not found -> create new user");
-                                        PreparedStatement st = roomController.getInstance().prepareStatement("INSERT INTO employee (rf_id) VALUES (?);");
+
+                                        PreparedStatement st = roomController.getInstance().prepareStatement("INSERT INTO employee (rf_id) VALUES (?)");
                                         st.setString(1, rf_id);
                                         st.executeUpdate();
                                         st.close();
                                         employee = findByRfId(rf_id);
                                     }
 
-                                    // Add log row
-                                    System.out.println("Add log row");
-                                    LocalDateTime localDateTime = Instant.ofEpochMilli(new java.util.Date().getTime())
-                                            .atZone(ZoneId.systemDefault())
-                                            .toLocalDateTime();
-                                    PreparedStatement st = roomController.getInstance().prepareStatement("INSERT INTO visit_log (time, employee_id) VALUES (?, ?)");
-                                    st.setObject(1, localDateTime);
-                                    st.setLong(2, employee.getId());
-                                    st.executeUpdate();
-                                    st.close();
-
 
                                     if (employee.getAccessLevel() != 0) {
                                         System.out.println("Пустить!");
                                         serialPort.writeByte((byte) 5);
 
+                                        // Add log row
+                                        System.out.println("Add log row");
+                                        LocalDateTime localDateTime = Instant.ofEpochMilli(new java.util.Date().getTime())
+                                                .atZone(ZoneId.systemDefault())
+                                                .toLocalDateTime();
+                                        PreparedStatement st = roomController.getInstance().prepareStatement("INSERT INTO visit_log (time, employee_id) VALUES (?, ?)");
+                                        st.setObject(1, localDateTime);
+                                        st.setLong(2, employee.getId());
+                                        st.executeUpdate();
+                                        st.close();
+
                                         st = roomController.getInstance().prepareStatement(
                                                 "UPDATE employee SET " +
-                                                        ((employee.getOpenCount() % 2 == 0) ? "last_enter" : "last_out") +
+                                                        (((employee.getOpenCount() + 1) % 2 == 0) ? "last_out" : "last_enter") +
                                                         " = ? WHERE id = ?");
                                         st.setObject(1, localDateTime);
                                         st.setLong(2, employee.getId());
@@ -154,7 +164,7 @@ public class Main {
             System.out.println("Try search user with rf_id");
             PreparedStatement st =
                     new RoomController().getInstance().prepareStatement(
-                            "SELECT e.id, e.access_level, COUNT(e.id) FROM public.employee e " +
+                            "SELECT e.id, e.access_level, COUNT(vl.id) FROM public.employee e " +
                                     "LEFT JOIN public.visit_log vl ON vl.employee_id = e.id  WHERE e.rf_id = ? " +
                                     "GROUP BY e.id");
             st.setString(1, rf_id);
