@@ -2,7 +2,6 @@ package org.access.driver;
 
 import jssc.*;
 
-import javax.swing.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,58 +9,84 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Date;
 
 public class Main {
 
+    static SerialPort serialPort;
+    private static final int CONNECT_ATTEMPTS = 10;
 
     public static void main(String[] args) {
-
-        /*
-         * Передаём в конструктор имя порта
-         */
-        while (!Arrays.asList(SerialPortList.getPortNames()).contains(args[0])) {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        SerialPort serialPort = new SerialPort(args[0]);
+        System.out.println("Demon started on [" + new Date().toString() + "]");
+        int attempt = 0;
         try {
-            /*
-             * Открываем порт
-             */
-            serialPort.openPort();
-            /*
-             * Выставляем параметры
-             */
-            serialPort.setParams(SerialPort.BAUDRATE_9600,
-                    SerialPort.DATABITS_8,
-                    SerialPort.STOPBITS_1,
-                    SerialPort.PARITY_NONE);
-            /*
-             * Готовим маску, на основании неё мы будем получать сообщения о событиях,
-             * которые произошли. Ну например, нам необходимо знать что пришли
-             * какие-то данные, т.о. в маске должна присутствовать следующая величина:
-             * MASK_RXCHAR. Если нам, например, ещё нужно знать об изменении состояния
-             * линий CTS и DSR, то маска уже будет выглядеть так:
-             * SerialPort.MASK_RXCHAR + SerialPort.MASK_CTS + SerialPort.MASK_DSR
-             */
-            int mask = SerialPort.MASK_RXCHAR;
-            /*
-             * Выставляем подготовленную маску
-             */
-            serialPort.setEventsMask(mask);
-            /*
-             * Добавляем собственно интерфейс через который мы и будем узнавать о
-             * нужных нам событиях
-             */
-            serialPort.addEventListener(new SerialPortReader(serialPort));
-        } catch (SerialPortException ex) {
-            ex.printStackTrace();
+            while (true) {
+
+                /*
+                 * Логика ожидания подключения и монитор порта
+                 */
+                while (!Arrays.asList(SerialPortList.getPortNames()).contains(args[0])) {
+                    attempt++;
+                    if (serialPort != null) {
+                        System.out.println("Device was disconnected !");
+                        System.out.println("Try connect port again...");
+                        if (serialPort.isOpened()) {
+                            serialPort.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR);
+                            serialPort.removeEventListener();
+                            serialPort.closePort();
+                        }
+                        serialPort = null;
+                    }
+                    System.out.println("Waiting for device on serial port ["
+                            + args[0] + "] (" + attempt + "/" + CONNECT_ATTEMPTS + ");");
+                    if (attempt == CONNECT_ATTEMPTS) return;
+                    Thread.sleep(5000);
+                }
+
+                if (serialPort == null) {
+                    /*
+                     * Передаём в конструктор имя порта
+                     */
+                    serialPort = new SerialPort(args[0]);
+
+                    /*
+                     * Открываем порт
+                     */
+                    serialPort.openPort();
+                    attempt = 0;
+                    /*
+                     * Выставляем параметры
+                     */
+                    serialPort.setParams(SerialPort.BAUDRATE_9600,
+                            SerialPort.DATABITS_8,
+                            SerialPort.STOPBITS_1,
+                            SerialPort.PARITY_NONE);
+                    /*
+                     * Готовим маску, на основании неё мы будем получать сообщения о событиях,
+                     * которые произошли. Ну например, нам необходимо знать что пришли
+                     * какие-то данные, т.о. в маске должна присутствовать следующая величина:
+                     * MASK_RXCHAR. Если нам, например, ещё нужно знать об изменении состояния
+                     * линий CTS и DSR, то маска уже будет выглядеть так:
+                     * SerialPort.MASK_RXCHAR + SerialPort.MASK_CTS + SerialPort.MASK_DSR
+                     */
+                    int mask = SerialPort.MASK_RXCHAR;
+                    /*
+                     * Выставляем подготовленную маску
+                     */
+                    serialPort.setEventsMask(mask);
+                    /*
+                     * Добавляем собственно интерфейс через который мы и будем узнавать о
+                     * нужных нам событиях
+                     */
+                    serialPort.addEventListener(new SerialPortReader(serialPort));
+
+                }
+                Thread.sleep(10000);
+            }
+        } catch (InterruptedException | SerialPortException e) {
+            e.printStackTrace();
+        } finally {
+            System.out.println("Demon terminated on [" + new Date().toString() + "]");
         }
     }
 
