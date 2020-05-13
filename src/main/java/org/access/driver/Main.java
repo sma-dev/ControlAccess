@@ -29,13 +29,7 @@ public class Main {
                     attempt++;
                     if (serialPort != null) {
                         System.out.println("Device was disconnected !");
-                        System.out.println("Try connect port again...");
-                        if (serialPort.isOpened()) {
-                            serialPort.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR);
-                            serialPort.removeEventListener();
-                            serialPort.closePort();
-                        }
-                        serialPort = null;
+                        throw new SerialPortException(args[0], "main", "Device disconnected!");
                     }
                     System.out.println("Waiting for device on serial port ["
                             + args[0] + "] (" + attempt + "/" + CONNECT_ATTEMPTS + ");");
