@@ -5,7 +5,9 @@ import java.awt.*;
 public class WelcomePanel extends Panel {
 
     public WelcomePanel() {
-        setBackground(Color.BLUE);
+        setBackground(Color.WHITE);
+
+
     }
 
     @Override

@@ -4,6 +4,7 @@ import org.access.installer.panel.Panel;
 import org.access.installer.panel.*;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.LinkedList;
 
@@ -17,7 +18,7 @@ public class InstallerFrame extends JFrame {
 
     public InstallerFrame() {
         super("Installer");
-        setSize(600, 500);
+        setSize(500, 390);
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         int x = (int) ((dimension.getWidth() - getWidth()) / 2);
         int y = (int) ((dimension.getHeight() - getHeight()) / 2);
@@ -30,10 +31,16 @@ public class InstallerFrame extends JFrame {
             System.exit(0);
         }
         JPanel content = new JPanel();
-        JPanel controls = new JPanel();
+        JPanel bottom = new JPanel(new BorderLayout());
 
+
+        bottom.setBorder(new EmptyBorder(4, 4, 4, 4));
+
+        bottom.setBackground(Settings.BG_COLOR);
 
         initPanels();
+
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
         installSequence.get(0).attach(content);
 
@@ -74,11 +81,22 @@ public class InstallerFrame extends JFrame {
 
         controls.add(back);
         controls.add(next);
+        controls.add(Box.createRigidArea(new Dimension(5, 0)));
         controls.add(cancel);
 
 
+        bottom.add(new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(Settings.SEPA_COLOR);
+                g.drawLine(10, 0, getWidth() - 10, 0);
+            }
+        }, BorderLayout.NORTH);
+        bottom.add(controls, BorderLayout.CENTER);
+
         add(content, BorderLayout.CENTER);
-        add(controls, BorderLayout.SOUTH);
+        add(bottom, BorderLayout.SOUTH);
 
 
         setVisible(true);

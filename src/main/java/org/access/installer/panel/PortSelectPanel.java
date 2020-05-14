@@ -1,7 +1,6 @@
 package org.access.installer.panel;
 
 import jssc.SerialPortList;
-import org.access.installer.InstallerFrame;
 import org.access.installer.Settings;
 
 import javax.swing.*;
@@ -13,6 +12,7 @@ public class PortSelectPanel extends Panel {
 
     public PortSelectPanel() {
 
+        setBackground(Settings.BG_COLOR);
         Font font = new Font("Verdana", Font.PLAIN, 18);
 
         String[] items = SerialPortList.getPortNames();
