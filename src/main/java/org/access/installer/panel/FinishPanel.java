@@ -2,10 +2,10 @@ package org.access.installer.panel;
 
 import java.awt.*;
 
-public class WelcomePanel extends Panel {
+public class FinishPanel extends Panel {
 
-    public WelcomePanel() {
-        setBackground(Color.BLUE);
+    public FinishPanel() {
+        setBackground(Color.GREEN);
     }
 
     @Override

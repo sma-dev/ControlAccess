@@ -1,6 +1,5 @@
 package org.access.installer.panel;
 
-import org.access.installer.InstallerFrame;
 import org.access.installer.Settings;
 
 import javax.swing.*;
@@ -8,20 +7,15 @@ import java.awt.*;
 import java.io.File;
 
 public class PathPanel extends Panel {
+    private final JTextField pathTextField;
+
     public PathPanel() {
         setBackground(Color.MAGENTA);
-        JButton next = new JButton("Next");
-        add(next);
 
-        JTextField pathTextField = new JTextField(30);
+        pathTextField = new JTextField(30);
         pathTextField.setText(Settings.path);
         add(pathTextField);
 
-
-        next.addActionListener(e -> {
-            Settings.path = pathTextField.getText();
-            InstallerFrame.getContext().navigate(InstallerFrame.PanelID.DOWNLOAD);
-        });
 
         JButton explore = new JButton("Browse");
         explore.addActionListener(e -> {
@@ -37,5 +31,11 @@ public class PathPanel extends Panel {
             }
         });
         add(explore);
+    }
+
+    @Override
+    public void detach() {
+        // finish jobs
+        Settings.path = pathTextField.getText();
     }
 }

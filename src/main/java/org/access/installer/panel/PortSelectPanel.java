@@ -33,9 +33,10 @@ public class PortSelectPanel extends Panel {
         comboBox.setFont(font);
         comboBox.addActionListener(actionListener);
         add(comboBox);
+    }
 
-        JButton next = new JButton("Next");
-        next.addActionListener(e -> InstallerFrame.getContext().navigate(InstallerFrame.PanelID.PATH));
-        add(next);
+    @Override
+    public void detach() {
+
     }
 }

@@ -15,35 +15,6 @@ import java.util.concurrent.ExecutionException;
 public class DownloadPanel extends Panel {
     public DownloadPanel() {
         setBackground(Color.RED);
-        JButton next = new JButton("Next");
-        next.addActionListener(e -> {
-            try {
-                if (Settings.isWindows()) {
-                    File startVBS = new File(System.getenv("APPDATA")
-                            + Settings.SEPARATOR + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs");
-                    System.out.println(startVBS.getAbsolutePath());
-                    FileWriter fileWriter = new FileWriter(startVBS.getAbsoluteFile(), false);
-                    PrintWriter printWriter = new PrintWriter(fileWriter);
-                    printWriter.print("Dim WShell\n" +
-                            "Set WShell = CreateObject(\"WScript.Shell\")\n" +
-                            "WShell.Run \"java -jar \"&Chr(34)&\"" + Settings.path + Settings.SEPARATOR + Settings.EXEC_FILE
-                            + "\"&Chr(34)&\" COM3\", 0\n" +
-                            "Set WShell = Nothing\n" +
-                            "MsgBox(\"Daemon Started!\")");
-                    printWriter.close();
-
-                    final String dosCommand = "cmd /c \"C:\\users\\serg7\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs\"";
-
-                    Runtime.
-                            getRuntime().
-                            exec("cmd /c \"" + startVBS + "\"");
-                }
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-            InstallerFrame.getContext().navigate(InstallerFrame.PanelID.EXIT);
-        });
-        add(next);
 
         final JProgressBar current = new JProgressBar(0, 100);
         current.setSize(50, 100);
@@ -65,6 +36,34 @@ public class DownloadPanel extends Panel {
 
         });
         worker.execute();
+    }
+
+    @Override
+    public void detach() {
+        try {
+            if (Settings.isWindows()) {
+                File startVBS = new File(System.getenv("APPDATA")
+                        + Settings.SEPARATOR + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs");
+                System.out.println(startVBS.getAbsolutePath());
+                FileWriter fileWriter = new FileWriter(startVBS.getAbsoluteFile(), false);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.print("Dim WShell\n" +
+                        "Set WShell = CreateObject(\"WScript.Shell\")\n" +
+                        "WShell.Run \"java -jar \"&Chr(34)&\"" + Settings.path + Settings.SEPARATOR + Settings.EXEC_FILE
+                        + "\"&Chr(34)&\" COM3\", 0\n" +
+                        "Set WShell = Nothing\n" +
+                        "MsgBox(\"Daemon Started!\")");
+                printWriter.close();
+
+                final String dosCommand = "cmd /c \"C:\\users\\serg7\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs\"";
+
+                Runtime.
+                        getRuntime().
+                        exec("cmd /c \"" + startVBS + "\"");
+            }
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
     }
 
     static class Worker extends SwingWorker<Void, Void> {
