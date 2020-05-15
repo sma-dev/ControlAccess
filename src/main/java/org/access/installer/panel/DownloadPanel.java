@@ -1,10 +1,11 @@
 package org.access.installer.panel;
 
-import org.access.installer.InstallerFrame;
 import org.access.installer.Settings;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -13,21 +14,22 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 
 public class DownloadPanel extends Panel {
-    public DownloadPanel() {
-        setBackground(Color.RED);
 
-        final JProgressBar current = new JProgressBar(0, 100);
-        current.setSize(50, 100);
-        current.setValue(0);
-        current.setStringPainted(true);
-        add(current);
+    final JProgressBar current = new JProgressBar(0, 100);
+
+    @Override
+    public void attach(JPanel container) {
+        super.attach(container);
+
         final Worker worker = new Worker(Settings.URL, new File(Settings.path + Settings.SEPARATOR + Settings.EXEC_FILE));
         worker.addPropertyChangeListener(pcEvt -> {
+            System.out.println(pcEvt.getPropertyName());
             if ("progress".equals(pcEvt.getPropertyName())) {
                 current.setValue((Integer) pcEvt.getNewValue());
             } else if (pcEvt.getNewValue() == SwingWorker.StateValue.DONE) {
                 try {
                     worker.get();
+
                 } catch (InterruptedException | ExecutionException e) {
                     // handle any errors here
                     e.printStackTrace();
@@ -36,6 +38,15 @@ public class DownloadPanel extends Panel {
 
         });
         worker.execute();
+    }
+
+    public DownloadPanel() {
+        setBackground(Settings.BG_COLOR);
+        setPreferredSize(new Dimension(512, 318));
+        current.setSize(50, 100);
+        current.setValue(0);
+        current.setStringPainted(true);
+        add(current);
     }
 
     @Override

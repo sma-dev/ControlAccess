@@ -18,24 +18,23 @@ public class InstallerFrame extends JFrame {
 
     public InstallerFrame() {
         super("Installer");
-        setSize(500, 390);
+        setSize(512, 396);
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         int x = (int) ((dimension.getWidth() - getWidth()) / 2);
         int y = (int) ((dimension.getHeight() - getHeight()) / 2);
         setLocation(x, y);
         setResizable(false);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+
         if (AdminChecker.IS_RUNNING_AS_ADMINISTRATOR) {
             JOptionPane.showMessageDialog(this, "Run program as administrator!", "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
         JPanel content = new JPanel();
-        JPanel bottom = new JPanel(new BorderLayout());
-
-
-        bottom.setBorder(new EmptyBorder(4, 4, 4, 4));
-
+        JPanel bottom = new JPanel();
+        bottom.setLayout(new BorderLayout());
+        //bottom.setBorder(new EmptyBorder(0, 4, 4, 4));
         bottom.setBackground(Settings.BG_COLOR);
 
         initPanels();
@@ -93,10 +92,11 @@ public class InstallerFrame extends JFrame {
                 g.drawLine(10, 0, getWidth() - 10, 0);
             }
         }, BorderLayout.NORTH);
-        bottom.add(controls, BorderLayout.CENTER);
 
-        add(content, BorderLayout.CENTER);
-        add(bottom, BorderLayout.SOUTH);
+        bottom.add(controls, BorderLayout.SOUTH);
+
+        add(content);
+        add(bottom);
 
 
         setVisible(true);

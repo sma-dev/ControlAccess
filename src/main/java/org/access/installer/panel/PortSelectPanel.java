@@ -13,6 +13,7 @@ public class PortSelectPanel extends Panel {
     public PortSelectPanel() {
 
         setBackground(Settings.BG_COLOR);
+        setPreferredSize(new Dimension(512, 318));
         Font font = new Font("Verdana", Font.PLAIN, 18);
 
         String[] items = SerialPortList.getPortNames();

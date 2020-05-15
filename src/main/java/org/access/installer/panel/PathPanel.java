@@ -10,8 +10,8 @@ public class PathPanel extends Panel {
     private final JTextField pathTextField;
 
     public PathPanel() {
-        setBackground(Color.MAGENTA);
-
+        setBackground(Settings.BG_COLOR);
+        setPreferredSize(new Dimension(512, 318));
         pathTextField = new JTextField(30);
         pathTextField.setText(Settings.path);
         add(pathTextField);
