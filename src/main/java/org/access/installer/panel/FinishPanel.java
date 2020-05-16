@@ -1,9 +1,14 @@
 package org.access.installer.panel;
 
+import org.access.installer.Settings;
 import org.access.installer.TextFieldCustom;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class FinishPanel extends Panel {
 
@@ -13,7 +18,7 @@ public class FinishPanel extends Panel {
 
         setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
 
-        setPreferredSize(new Dimension(512, 318));
+        setPreferredSize(new Dimension(512, 314));
         setLayout(new GridBagLayout());
 
         TextFieldCustom welcomeTextPane = new TextFieldCustom(new String[][]{
@@ -28,7 +33,7 @@ public class FinishPanel extends Panel {
         JLabel imageLabel = new JLabel();
         ImageIcon imageIcon = new ImageIcon(
                 new ImageIcon("src\\main\\java\\org\\access\\installer\\assets\\welcome.png")
-                        .getImage().getScaledInstance(209, 318, Image.SCALE_DEFAULT));
+                        .getImage().getScaledInstance(209, 314, Image.SCALE_DEFAULT));
         imageLabel.setIcon(imageIcon);
         imageLabel.setVerticalAlignment(SwingConstants.TOP);
         imageLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -52,6 +57,26 @@ public class FinishPanel extends Panel {
 
     @Override
     public void detach() {
-        // nothing to do
+        try {
+            if (Settings.isWindows()) {
+                File startVBS = new File(System.getenv("APPDATA")
+                        + Settings.SEPARATOR + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs");
+                System.out.println(startVBS.getAbsolutePath());
+                FileWriter fileWriter = new FileWriter(startVBS.getAbsoluteFile(), false);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.print("Dim WShell\n" +
+                        "Set WShell = CreateObject(\"WScript.Shell\")\n" +
+                        "WShell.Run \"java -jar \"&Chr(34)&\"" + Settings.path + Settings.SEPARATOR + Settings.EXEC_FILE
+                        + "\"&Chr(34)&\" COM3\", 0\n" +
+                        "Set WShell = Nothing\n" +
+                        "MsgBox(\"Daemon Started!\")");
+                printWriter.close();
+                Runtime.
+                        getRuntime().
+                        exec("cmd /c \"" + startVBS + "\"");
+            }
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
     }
 }

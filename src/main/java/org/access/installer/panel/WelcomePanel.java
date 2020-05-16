@@ -13,7 +13,7 @@ public class WelcomePanel extends Panel {
 
         setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
 
-        setPreferredSize(new Dimension(512, 318));
+        setPreferredSize(new Dimension(512, 314));
         setLayout(new GridBagLayout());
 
         TextFieldCustom welcomeTextPane = new TextFieldCustom(new String[][]{
@@ -28,7 +28,7 @@ public class WelcomePanel extends Panel {
         JLabel imageLabel = new JLabel();
         ImageIcon imageIcon = new ImageIcon(
                 new ImageIcon("src\\main\\java\\org\\access\\installer\\assets\\welcome.png")
-                        .getImage().getScaledInstance(209, 318, Image.SCALE_DEFAULT));
+                        .getImage().getScaledInstance(209, 314, Image.SCALE_DEFAULT));
         imageLabel.setIcon(imageIcon);
         imageLabel.setVerticalAlignment(SwingConstants.TOP);
         imageLabel.setHorizontalAlignment(SwingConstants.LEFT);

@@ -3,6 +3,7 @@ package org.access.installer.panel;
 import org.access.installer.Settings;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -15,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 
 public class DownloadPanel extends Panel {
 
-    final JProgressBar current = new JProgressBar(0, 100);
+    final JProgressBar current = new JProgressBar(0, 400);
 
     @Override
     public void attach(JPanel container) {
@@ -26,6 +27,8 @@ public class DownloadPanel extends Panel {
             System.out.println(pcEvt.getPropertyName());
             if ("progress".equals(pcEvt.getPropertyName())) {
                 current.setValue((Integer) pcEvt.getNewValue());
+                System.out.println(current.getValue());
+
             } else if (pcEvt.getNewValue() == SwingWorker.StateValue.DONE) {
                 try {
                     worker.get();
@@ -43,38 +46,17 @@ public class DownloadPanel extends Panel {
     public DownloadPanel() {
         setBackground(Settings.BG_COLOR);
         setPreferredSize(new Dimension(512, 318));
-        current.setSize(50, 100);
+        current.setPreferredSize(new Dimension(400, 30));
         current.setValue(0);
+        current.setMaximum(100);
         current.setStringPainted(true);
+        current.setBorder(new LineBorder(new Color(0, 120, 215), 3));
         add(current);
     }
 
     @Override
     public void detach() {
-        try {
-            if (Settings.isWindows()) {
-                File startVBS = new File(System.getenv("APPDATA")
-                        + Settings.SEPARATOR + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs");
-                System.out.println(startVBS.getAbsolutePath());
-                FileWriter fileWriter = new FileWriter(startVBS.getAbsoluteFile(), false);
-                PrintWriter printWriter = new PrintWriter(fileWriter);
-                printWriter.print("Dim WShell\n" +
-                        "Set WShell = CreateObject(\"WScript.Shell\")\n" +
-                        "WShell.Run \"java -jar \"&Chr(34)&\"" + Settings.path + Settings.SEPARATOR + Settings.EXEC_FILE
-                        + "\"&Chr(34)&\" COM3\", 0\n" +
-                        "Set WShell = Nothing\n" +
-                        "MsgBox(\"Daemon Started!\")");
-                printWriter.close();
 
-                final String dosCommand = "cmd /c \"C:\\users\\serg7\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Diplom.vbs\"";
-
-                Runtime.
-                        getRuntime().
-                        exec("cmd /c \"" + startVBS + "\"");
-            }
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
     }
 
     static class Worker extends SwingWorker<Void, Void> {

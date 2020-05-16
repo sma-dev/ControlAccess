@@ -18,7 +18,7 @@ public class InstallerFrame extends JFrame {
 
     public InstallerFrame() {
         super("Installer");
-        setSize(512, 396);
+        setSize(512, 390);
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         int x = (int) ((dimension.getWidth() - getWidth()) / 2);
         int y = (int) ((dimension.getHeight() - getHeight()) / 2);
@@ -27,28 +27,27 @@ public class InstallerFrame extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
-        if (AdminChecker.IS_RUNNING_AS_ADMINISTRATOR) {
+        if (!AdminChecker.IS_RUNNING_AS_ADMINISTRATOR) {
             JOptionPane.showMessageDialog(this, "Run program as administrator!", "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
         JPanel content = new JPanel();
         JPanel bottom = new JPanel();
-        bottom.setLayout(new BorderLayout());
-        //bottom.setBorder(new EmptyBorder(0, 4, 4, 4));
+        bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
         bottom.setBackground(Settings.BG_COLOR);
 
         initPanels();
 
         JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        controls.setBorder(new EmptyBorder(0, 0, 10, 10));
 
         installSequence.get(0).attach(content);
-
-        cancel = new JButton("Cancel");
+        cancel = new Button("Cancel");
         cancel.addActionListener(e -> {
             System.exit(0);
         });
 
-        next = new JButton("Next>");
+        next = new Button("Next>");
         next.addActionListener(e -> {
             installSequence.get(pos).detach();
             pos++;
@@ -65,7 +64,7 @@ public class InstallerFrame extends JFrame {
                 System.exit(0);
             }
         });
-        back = new JButton("<Back");
+        back = new Button("<Back");
         back.setVisible(false);
         back.addActionListener(e -> {
             installSequence.get(pos).detach();
@@ -91,9 +90,9 @@ public class InstallerFrame extends JFrame {
                 g.setColor(Settings.SEPA_COLOR);
                 g.drawLine(10, 0, getWidth() - 10, 0);
             }
-        }, BorderLayout.NORTH);
+        });
 
-        bottom.add(controls, BorderLayout.SOUTH);
+        bottom.add(controls);
 
         add(content);
         add(bottom);
