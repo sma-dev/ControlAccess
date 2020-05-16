@@ -1,6 +1,7 @@
 package org.access.installer;
 
 import java.awt.*;
+import java.net.URL;
 
 public class Settings {
     public static final String URL = "https://jdroid.ru/downloads/run.jar";

@@ -4,6 +4,8 @@ import org.access.installer.TextFieldCustom;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.URL;
+import java.util.Objects;
 
 public class WelcomePanel extends Panel {
 
@@ -27,8 +29,8 @@ public class WelcomePanel extends Panel {
 
         JLabel imageLabel = new JLabel();
         ImageIcon imageIcon = new ImageIcon(
-                new ImageIcon("src\\main\\java\\org\\access\\installer\\assets\\welcome.png")
-                        .getImage().getScaledInstance(209, 314, Image.SCALE_DEFAULT));
+                new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("welcome.png")))
+                        .getImage().getScaledInstance(209, 310, Image.SCALE_DEFAULT));
         imageLabel.setIcon(imageIcon);
         imageLabel.setVerticalAlignment(SwingConstants.TOP);
         imageLabel.setHorizontalAlignment(SwingConstants.LEFT);

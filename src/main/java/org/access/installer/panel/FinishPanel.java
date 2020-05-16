@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
+import java.util.Objects;
 
 public class FinishPanel extends Panel {
 
@@ -31,8 +33,10 @@ public class FinishPanel extends Panel {
         welcomeTextPane.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel imageLabel = new JLabel();
+        final URL url = Thread.currentThread().getContextClassLoader().getResource("org\\access\\welcome.png");
+
         ImageIcon imageIcon = new ImageIcon(
-                new ImageIcon("src\\main\\java\\org\\access\\installer\\assets\\welcome.png")
+                new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("welcome.png")))
                         .getImage().getScaledInstance(209, 314, Image.SCALE_DEFAULT));
         imageLabel.setIcon(imageIcon);
         imageLabel.setVerticalAlignment(SwingConstants.TOP);
